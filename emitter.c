@@ -4,14 +4,14 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-enum op {SYNCH, DOOR};
+enum op {SYNCH, DOOR, LIGHT, EMIT, KEYPAD, RUN, COOKTIME};
 
 main() {
 	key_t key;
 	int shm_id;
 	int *shm;
-	int doorstat;
-	int oc;
+	int emitstat;
+	int os = 0;
 	
 	key=0x520260A;
 	//key = ftok("/home/kosuke/IPU", 'a' );
@@ -23,17 +23,20 @@ main() {
 	printf("waiting for GO.\n");
 	while ( *(shm+SYNCH) == 0 );
 
-	printf("door application started.\n");
+	printf("emitter application started.\n");
 	while(1) {
-		scanf("%d", &oc);
-		if(oc == 1) {
-			*(shm + DOOR) = 1;
-			printf("door is open, press 0 to close.\n");
-			
-		}
-		if(oc == 0) {
-			printf("door closed.\n");
-		}
-		
+		if (*(shm+RUN) == 1 && *(shm+DOOR) == 0 && *(shm+COOKTIME) > 0) {
+         *(shm+EMIT) = 1;
+         if (os == 0) {
+            os = 1;
+            printf("Emitter is on.");
+         }
+      } else {
+         *(shm+EMIT) = 0;
+         if (os == 1) {
+            os = 0;
+            printf("Emitter is off.");
+         }
+      }
 	}
 }

@@ -5,7 +5,6 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <unistd.h>
-#include "our.h"
 
 int option = 0, power = 100, time = 0;
 enum op {SYNCH, DOOR, LIGHT, EMIT, KEYPAD, RUN, COOKTIME};
@@ -24,16 +23,14 @@ main(int argc, char argv[]) {
 	//printf(" shm_id = %d\n", shm_id);
 
 	shm = shmat(shm_id,0,0);
-	*(shm+SYNCH) =0;
+	*(shm+SYNCH) = 0;
 	//printf(" *shm = %d\n", *shm);
 	printf(" run all the programs now,\n");
 	printf(" then hit the return key.\n");
 	getchar();
-	*(shm+SYNCH) =1;
-	//*(shm+KEYPAD) = 1;
-	// main menu system should really be in keyboard
+	*(shm+SYNCH) = 1;
 
 	// set/check operation modes, door open/closed, running/not running.
-
+}
 
 

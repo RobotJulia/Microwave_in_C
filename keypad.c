@@ -6,68 +6,103 @@
 #include <sys/shm.h>
 enum op {SYNCH, DOOR, LIGHT, EMIT, KEYPAD, RUN, COOKTIME};
 
-main() {
-	key_t key;
-	int shm_id;
-	int *shm;
-	int doorstat;
-	int oc;
+int displayMenu();
+int normCook();
+int foodMenu();
+int *shm;
+int shm_id;
+int doorstat;
+int oc;
+int powerlevel;
+int cookTime;
+//function sleep declaration
 
-	key=0x520260A;
-	//key = ftok("/home/kosuke/IPU", 'a' );
-	printf("key= %x\n", key);
-	shm_id = shmget(key, sizeof(int)*10, 0666);
+int main() {
+    key_t key;
+    
 
-	printf(" shm_id = %d\n", shm_id);
-	shm = shmat(shm_id,0,0);
-	printf("waiting for GO.\n");
-	while ( *(shm+SYNCH) == 0 );
+    key=0x520260A;
+    //key = ftok("/home/kosuke/IPU", 'a' );
+    printf("key= %x\n", key);
+    shm_id = shmget(key, sizeof(int)*10, 0666);
 
-	// start application
+    printf(" shm_id = %d\n", shm_id);
+    shm = shmat(shm_id,0,0);
+    printf("waiting for GO.\n");
+    while ( *(shm+SYNCH) == 0 );
 
-	int option = 0;
+    // start application
 
-	while(option != 4) {
-		option = displayMenu();
-		if(option == 1) {
-			// assume power level 100, ask for time
-			normCook();
-		}
-		else if(option == 2) {
-			// ask for power level, time
-		}
-		else if(option == 3) {
-			// show list of popcorn, pork, chicken, beef, 1 cup water
-		}
+    int option = 0;
 
-	}
-	printf("goodbye. \n");
-}
+    while(option != 4) {
+        option = displayMenu();
+        if(option == 1) {
+            // assume power level 100, ask for time
+			// set door, timer, run
+			
+			if(shm[DOOR]==0) {
+				normCook();
+			}
+			
+        }
+        else if(option == 2) {
+            // ask for power level, time
+            printf("Enter power level: %d", powerlevel);
+            printf("Enter time: %s", &cookTime);
+            //timer(CookTime);
+
+        }
+        else if(option == 3) {
+            // show list of popcorn, pork, chicken, beef, 1 cup water
+        int foodchoice = foodMenu();
+
+        if (foodchoice ==1) {
+            printf("You chose popcorn \n");
+            normCook();
+        }
+        else if (foodchoice ==2) {
+            printf("You chose pork \n");
+            normCook();
+        }
+        else if (foodchoice ==3) {
+        	printf("You chose Chicken \n");
+        	normCook();
+        }
+
+        }
+
+    }
+    printf("goodbye. \n");
+}//end main
+
 
 int displayMenu() {
-	int choice = 0;
-	printf("Welcome to Microwave 9000! \n");
-	printf("Please select an option: \n");
-	printf("1. quick cook \n");
-	printf("2. set power level and cook \n");
-	printf("3. cook by item \n");
-	printf("4. quit \n");
-	scanf("%d", &choice);
-	return choice;
+    int choice = 0;
+    printf("Welcome to Microwave 9000! \n");
+    printf("Please select an option: \n");
+    printf("1. quick cook \n");
+    printf("2. set power level and cook \n");
+    printf("3. cook by item \n");
+    printf("4. quit \n");
+    scanf("%d", &choice);
+    return choice;
 
-	}
+}
 
-normCook() {
-	int cookTime;
-	char ch[] = {' '};
-	// call to keypad.c
-	printf("How long to cook for?");
-	scanf("%d", &cookTime);
-	//timer(cookTime);
-	for(int i = 1; i <= cookTime; i++) {
-		printf("%d \n", i);
-		// ch = i;
-		// write(0, &i, 1);
-		sleep(1);
-	}
+int normCook() {
+    printf("How long to cook for?");
+    scanf("%d", &cookTime);
+    *(shm+RUN) = 1;
+    *(shm+COOKTIME) = cookTime;
+}
+
+int foodMenu(){
+    int foodchoice = 0;
+    printf("Choose a food option ");
+    printf("1.Popcorn");
+    printf("2.Pork");
+    printf("3.Chicken");
+    scanf("%d", &foodchoice);
+    return foodchoice;
 }
